@@ -17,6 +17,8 @@ THUNDERID_APPLICATION_ID=your-application-id
 THUNDERID_AFTER_SIGN_IN_URL=
 THUNDERID_AFTER_SIGN_OUT_URL=
 THUNDERID_FLOW_SECRET=your-flow-secret
+THUNDERID_ATTESTATION_ENABLED=false
+THUNDERID_CLOUD_PROJECT_NUMBER=
 ```
 
 - `THUNDERID_APPLICATION_ID` and `THUNDERID_FLOW_SECRET` come from your application's page in the ThunderID
@@ -29,6 +31,21 @@ To let users self-register, enable self-registration in **both** places in the c
 default in either and the flow fails until both are turned on:
 1. The application's settings (registration flow enabled for this app).
 2. The user type assigned to the application (self-registration enabled for that user type).
+
+### Google Play Integrity attestation (optional)
+
+If the application enforces Google Play Integrity attestation instead of a Flow Secret, set
+`THUNDERID_ATTESTATION_ENABLED=true` and `THUNDERID_CLOUD_PROJECT_NUMBER` to the number (not the ID) of the
+Google Cloud project linked to your Play Console app, then rebuild. When enabled, the sample mints a token
+via `PlayIntegrityTokenProvider` (Play Integrity Standard API) and sends it with every native flow-initiate
+request.
+
+Testing this end-to-end requires:
+- The app uploaded to a Play Console listing (an internal testing track is enough) with your test device's
+  Google account added as a tester, so Play recognizes the package name and signing certificate.
+- The Play Integrity API enabled on the linked Google Cloud project.
+- A release build signed with the certificate registered on the ThunderID application's attestation config
+  (`certificateSha256Digests`) — a debug-signed APK will fail the signing-identity check.
 
 ## Run
 
