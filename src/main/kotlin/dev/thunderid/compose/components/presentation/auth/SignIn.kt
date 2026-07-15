@@ -129,10 +129,12 @@ class SignInState {
 
 /**
  * Fills in any `null` presentation fields on the flat `actions` array (label, eventType,
- * variant, icon) from the matching `ACTION`-typed node in the component tree, matched by `ref`
- * (falling back to `id`). Explicit flat values always win.
+ * variant, icon) from the matching `ACTION`-typed node in the component tree. The server pairs a
+ * flat action to its component by `component.id == action.ref` (there is no shared field name),
+ * so that cross-field comparison is the primary match; same-name `ref`/`id` are also checked in
+ * case a future response starts using matching field names. Explicit flat values always win.
  */
-private fun enrichActions(
+internal fun enrichActions(
     actions: List<FlowAction>,
     components: List<FlowComponent>,
 ): List<FlowAction> {
@@ -140,7 +142,9 @@ private fun enrichActions(
     return actions.map { action ->
         val match =
             actionComponents.firstOrNull {
-                (it.ref != null && it.ref == action.ref) || (it.id != null && it.id == action.id)
+                (it.id != null && it.id == action.ref) ||
+                    (it.ref != null && it.ref == action.ref) ||
+                    (it.id != null && it.id == action.id)
             } ?: return@map action
         action.copy(
             label = action.label ?: match.label,
@@ -313,9 +317,13 @@ private fun ActionComponentView(
     i18n: ThunderIDI18n,
     modifier: Modifier = Modifier,
 ) {
+    // The server pairs a flat action to its component by `component.id == action.ref`; same-name
+    // `ref`/`id` are also checked in case a future response starts using matching field names.
     val action =
         signInState.actions.firstOrNull {
-            (it.ref != null && it.ref == component.ref) || (it.id != null && it.id == component.id)
+            (it.ref != null && it.ref == component.id) ||
+                (it.ref != null && it.ref == component.ref) ||
+                (it.id != null && it.id == component.id)
         } ?: return
     val actionId = action.id ?: action.ref ?: return
     val resolver = signInState.templateResolver

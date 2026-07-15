@@ -34,6 +34,10 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        val attestationEnabled = BuildConfig.THUNDERID_ATTESTATION_ENABLED
+        val integrityTokenProvider =
+            PlayIntegrityTokenProvider(this, BuildConfig.THUNDERID_CLOUD_PROJECT_NUMBER)
+
         val config = ThunderIDConfig(
             baseUrl = BuildConfig.THUNDERID_BASE_URL,
             clientId = BuildConfig.THUNDERID_CLIENT_ID.takeIf { it.isNotBlank() },
@@ -42,6 +46,8 @@ class MainActivity : ComponentActivity() {
             afterSignOutUrl = BuildConfig.THUNDERID_AFTER_SIGN_OUT_URL.takeIf { it.isNotBlank() },
             applicationId = BuildConfig.THUNDERID_APPLICATION_ID.takeIf { it.isNotBlank() },
             flowSecret = BuildConfig.THUNDERID_FLOW_SECRET.takeIf { it.isNotBlank() },
+            attestationEnabled = attestationEnabled,
+            attestationTokenProvider = if (attestationEnabled) integrityTokenProvider::requestToken else null,
             storage = EncryptedStorageAdapter(this),
             allowInsecureConnections = BuildConfig.DEBUG,
         )
